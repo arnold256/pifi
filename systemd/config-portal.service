@@ -1,0 +1,19 @@
+[Unit]
+Description=WiFi Configuration Portal (NetworkManager)
+After=network.target NetworkManager.service wifi-manager.service
+Wants=NetworkManager.service wifi-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/config_portal.py
+Restart=always
+RestartSec=3
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Ensure Flask can bind to port 80
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

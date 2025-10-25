@@ -1,0 +1,20 @@
+[Unit]
+Description=WiFi Manager (NetworkManager)
+After=network.target NetworkManager.service
+Wants=NetworkManager.service
+BindsTo=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/wifi_manager.py
+Restart=always
+RestartSec=5
+User=root
+StandardOutput=journal
+StandardError=journal
+
+# Wait for NetworkManager to be ready
+ExecStartPre=/bin/sleep 5
+
+[Install]
+WantedBy=multi-user.target
