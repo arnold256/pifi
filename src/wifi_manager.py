@@ -73,6 +73,24 @@ def is_ap_active() -> bool:
     return False
 
 
+def cleanup_duplicate_ap_connections():
+    """Remove all existing AP connections to prevent duplicates"""
+    removed_count = 0
+    max_attempts = 20  # Safety limit
+    
+    for _ in range(max_attempts):
+        result = run(f"nmcli connection delete {AP_CONNECTION_NAME}")
+        if result and result.returncode == 0:
+            removed_count += 1
+        else:
+            break  # No more connections to remove
+    
+    if removed_count > 0:
+        logger.info(f"Cleaned up {removed_count} duplicate AP connection(s)")
+    
+    return removed_count
+
+
 def ap_connection_exists() -> bool:
     """Check if AP connection profile exists"""
     result = run(f"nmcli -t -f NAME connection show {AP_CONNECTION_NAME}")
@@ -80,9 +98,13 @@ def ap_connection_exists() -> bool:
 
 
 def create_ap_connection():
-    """Create NetworkManager AP connection if it doesn't exist"""
+    """Create NetworkManager AP connection (reuse existing or create new)"""
+    # First, clean up any duplicate connections
+    duplicates = cleanup_duplicate_ap_connections()
+    
+    # Now check if one exists (after cleanup, should be 0 or 1)
     if ap_connection_exists():
-        logger.info("AP connection already exists")
+        logger.info("AP connection exists and is ready to use")
         return True
     
     logger.info(f"Creating AP connection: {AP_CONNECTION_NAME}")
